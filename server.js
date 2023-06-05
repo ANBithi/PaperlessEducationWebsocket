@@ -1,21 +1,32 @@
-const { Server } = require("ws");
-const express = require("express");
-const bodyParser = require('body-parser');
+import { WebSocketServer } from "ws";
+import express from "express";
+import bodyParser from 'body-parser';
+import activityService from "./Services/activity.service.js";
 
-const sockServer = new Server({ port: 443 });
+const sockServer = new WebSocketServer({ port: 443 });
 const connections = new Set();
+
 sockServer.on("connection", (ws, req) => {
+	let message;
 	console.log(`New client connected to ${req.url}!`);
+	//console.log(`New data ${data}!`);
 	connections.add({ws, url: req.url});
-
-	ws.on("message", (data) => {
-		const message = JSON.parse(data);
-		connections.forEach((client) => {
-			client.ws.send(JSON.stringify(message));
-		});
+	ws.on("message", async (data) => {
+		message = JSON.parse(data);
+		if (req.url === `/exam`) {
+			var payload = {...message, status : 0};
+			console.log(payload);
+			 await activityService.addActivity(payload);
+		}
 	});
+	
 
-	ws.on("close", () => {
+	ws.on("close",async () => {
+		if(req.url === '/exam') {
+			var payload = {...message, status : 1};
+			console.log(payload);
+			 await activityService.addActivity(payload);
+		}
 		connections.delete(ws);
 		console.log("Client has disconnected!");
 	});
