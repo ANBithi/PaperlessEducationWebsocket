@@ -9,7 +9,6 @@ const connections = new Set();
 sockServer.on("connection", (ws, req) => {
 	let message;
 	console.log(`New client connected to ${req.url}!`);
-	//console.log(`New data ${data}!`);
 	connections.add({ws, url: req.url});
 	ws.on("message", async (data) => {
 		message = JSON.parse(data);
